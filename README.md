@@ -1,78 +1,66 @@
-# safe-update-skill
+# safe-update
 
-Сделал скилл безопасных обновлений для OpenClaw
+Stateful and low-risk OpenClaw update workflow with precheck, backup, release-impact analysis, postcheck, auto-rollback, and cleanup.
 
-🎯 Зачем
+## Features
 
-Обновление бота — всегда лотерея. После апдейта могут слететь конфиги, настройки, память. Написал этот скилл чтобы обновления были предсказуемыми и безопасными.
+- **Disk space check** — fails if less than 500MB free (configurable)
+- **Auto-rollback** — automatically restores from backup if postcheck fails
+- **Backup** — archives config, memory, workspace files to timestamped tar.gz
+- **Postcheck** — verifies gateway and heartbeat state after update
+- **State persistence** — resumes from saved state after restart
 
-🔒 Принципы
+## Requirements
 
-1. Проверка места на диске — не начнёт без 500MB свободно
-2. Бэкап перед обновлением — сохраняет всё нужное
-3. Анализ релизов — показывает что изменилось и какие риски
-4. Проверка после — убеждается что всё работает
-5. Авто-откат — если что-то сломалось, восстанавливает сам
+- Python 3.8+
+- OpenClaw installed
 
-🚀 Команды
-
-Dry-run
-Показывает что произойдёт, но ничего не меняет. Проверь перед обновлением.
-
-Run
-Полный цикл: проверка → бэкап → анализ релизов → обновление → проверка → откат если нужно.
-
-Resume
-Продолжить после перезагрузки — шаги сохраняются.
-
-Cleanup
-Удалить старые бэкапы (оставляет последние 3, max 14 дней).
-
-📋 Workflow
-
-```
-Dry-run → (всё ок?) → Run → (проверка прошла?) → готово
-                              ↓ нет
-                        Авто-откат из бэкапа
-```
-
-⚙️ Настройки
-
-- SAFE_UPDATE_UPDATE_CMD — команда обновления
-- SAFE_UPDATE_AUTO_ROLLBACK — вкл/выкл авто-откат
-- SAFE_UPDATE_MIN_FREE_MB — минимум места (по умолчанию: 500MB)
-- SAFE_UPDATE_KEEP_LAST_SUCCESS — сколько бэкапов хранить
-
-📂 Что бекапится
-
-- openclaw.json (конфиг)
-- MEMORY.md, AGENTS.md, SOUL.md, USER.md
-- memory/telegram-topics.json
-- state/digest/configs
-
-## Установка
+## Installation
 
 ```bash
 cd ~/.openclaw/workspace/skills
-git clone git@github.com:web3blind/safe-update-skill.git
+git clone git@github.com:your-repo/safe-update.git
 ```
 
-## Использование
+## Usage
 
 ```bash
-# Dry-run (проверить что будет)
-python3 ~/.openclaw/workspace/skills/safe-update-skill/scripts/safe_update.py dry-run
+# Dry-run (preview actions, no update)
+python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py dry-run
 
-# Полное обновление
-python3 ~/.openclaw/workspace/skills/safe-update-skill/scripts/safe_update.py run
+# Full update with safety checks
+python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py run
 
-# Продолжить после перезагрузки
-python3 ~/.openclaw/workspace/skills/safe-update-skill/scripts/safe_update.py resume
+# Resume after restart
+python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py resume
 
-# Удалить старые бэкапы
-python3 ~/.openclaw/workspace/skills/safe-update-skill/scripts/safe_update.py cleanup
+# Cleanup old backups
+python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py cleanup
 ```
 
-🔗 Где взять
+## Environment Variables
 
-github.com/web3blind/safe-update-skill
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SAFE_UPDATE_KEEP_LAST_SUCCESS` | 3 | Number of backups to keep |
+| `SAFE_UPDATE_MAX_AGE_DAYS` | 14 | Max age for backups in days |
+| `SAFE_UPDATE_UPDATE_CMD` | — | Update command to run |
+| `SAFE_UPDATE_MIN_FREE_MB` | 500 | Minimum free disk space in MB |
+| `SAFE_UPDATE_AUTO_ROLLBACK` | 1 | Enable auto-rollback on postcheck failure |
+
+## Example
+
+```bash
+# Set update command
+export SAFE_UPDATE_UPDATE_CMD="openclaw update --yes --no-restart"
+
+# Run dry-run to preview
+python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py dry-run
+
+# Run actual update
+python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py run
+```
+
+## License
+
+MIT
