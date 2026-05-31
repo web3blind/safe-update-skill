@@ -1,65 +1,52 @@
 # safe-update
 
-Stateful and low-risk OpenClaw update workflow with precheck, backup, release-impact analysis, postcheck, auto-rollback, and cleanup.
+Stateful and low-risk Hermes Agent update workflow with precheck, backup, release-impact analysis, postcheck, optional rollback guidance, and cleanup.
+
+This skill is designed for local/private operator use. It does not contain secrets and should not store `.env`, auth files, tokens, or private keys inside the repo.
 
 ## Features
 
-- **Disk space check** — fails if less than 500MB free (configurable)
-- **Auto-rollback** — automatically restores from backup if postcheck fails
-- **Backup** — archives config, memory, workspace files to timestamped tar.gz
-- **Postcheck** — verifies gateway and heartbeat state after update
-- **State persistence** — resumes from saved state after restart
+- disk space check before backup/update;
+- timestamped backup under `~/.hermes/state/safe-update/backups`;
+- release-impact summary from the Hermes Agent GitHub releases feed;
+- optional update command through `SAFE_UPDATE_UPDATE_CMD`;
+- postcheck for `hermes --version`, `hermes status`, gateway status, and scheduler state;
+- state persistence for resume/cleanup flows.
 
 ## Requirements
 
-- Python 3.8+
-- OpenClaw installed
-
-## Installation
-
-```bash
-cd ~/.openclaw/workspace/skills
-git clone git@github.com:your-repo/safe-update.git
-```
+- Python 3.10+
+- Hermes Agent installed and available as `hermes`
 
 ## Usage
 
 ```bash
-# Dry-run (preview actions, no update)
-python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py dry-run
+# Dry-run / safety preflight
+python3 ~/.hermes/skills/devops/safe-update/scripts/safe_update.py dry-run
 
 # Full update with safety checks
-python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py run
+SAFE_UPDATE_UPDATE_CMD="hermes update" \
+  python3 ~/.hermes/skills/devops/safe-update/scripts/safe_update.py run
 
-# Resume after restart
-python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py resume
+# Resume after interruption
+python3 ~/.hermes/skills/devops/safe-update/scripts/safe_update.py resume
 
 # Cleanup old backups
-python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py cleanup
+python3 ~/.hermes/skills/devops/safe-update/scripts/safe_update.py cleanup
 ```
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SAFE_UPDATE_KEEP_LAST_SUCCESS` | 3 | Number of backups to keep |
-| `SAFE_UPDATE_MAX_AGE_DAYS` | 14 | Max age for backups in days |
-| `SAFE_UPDATE_UPDATE_CMD` | — | Update command to run |
-| `SAFE_UPDATE_MIN_FREE_MB` | 500 | Minimum free disk space in MB |
-| `SAFE_UPDATE_AUTO_ROLLBACK` | 1 | Enable auto-rollback on postcheck failure |
+- `SAFE_UPDATE_KEEP_LAST_SUCCESS` — number of backups to keep, default `3`.
+- `SAFE_UPDATE_MAX_AGE_DAYS` — max age for backups, default `14`.
+- `SAFE_UPDATE_UPDATE_CMD` — explicit update command. Required for actual update.
+- `SAFE_UPDATE_MIN_FREE_MB` — minimum free disk space in MB, default `500`.
+- `SAFE_UPDATE_AUTO_ROLLBACK` — keep for compatibility; manual review is recommended before rollback.
+- `SAFE_UPDATE_GATEWAY_JOURNAL_LINES` — gateway log lines to inspect, default `200`.
 
-## Example
+## Safety model
 
-```bash
-# Set update command
-export SAFE_UPDATE_UPDATE_CMD="openclaw update --yes --no-restart"
-
-# Run dry-run to preview
-python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py dry-run
-
-# Run actual update
-python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py run
-```
+Run `dry-run` first. Do not set `SAFE_UPDATE_UPDATE_CMD` to a destructive or unrelated command. Keep secrets outside the skill repo.
 
 ## License
 

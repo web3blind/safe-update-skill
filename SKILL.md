@@ -1,11 +1,11 @@
 ---
 name: safe-update
-description: Stateful and low-risk OpenClaw update workflow with precheck, backup, release-impact analysis, postcheck, auto-rollback, and cleanup. Use when user asks to safely update OpenClaw with rollback-ready backups and minimal manual steps.
+description: Stateful and low-risk Hermes update workflow with precheck, backup, release-impact analysis, postcheck, auto-rollback, and cleanup. Use when user asks to safely update Hermes with rollback-ready backups and minimal manual steps.
 ---
 
 # safe-update
 
-Use this skill for OpenClaw upgrades when reliability matters.
+Use this skill for Hermes upgrades when reliability matters.
 
 ## Workflow (stateful)
 1. `dry-run` — precheck + disk space check + backup + release-impact + plan (no update).
@@ -14,10 +14,10 @@ Use this skill for OpenClaw upgrades when reliability matters.
 4. `cleanup` — remove old backups using retention policy.
 
 ## Commands
-- `python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py dry-run`
-- `python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py run`
-- `python3 ~/.openclaw/workspace/skills/safe_update.py resume`
-- `python3 ~/.openclaw/workspace/skills/safe-update/scripts/safe_update.py cleanup`
+- `python3 ~/.hermes/skills/safe-update/scripts/safe_update.py dry-run`
+- `python3 ~/.hermes/skills/safe-update/scripts/safe_update.py run`
+- `python3 ~/.hermes/skills/safe_update.py resume`
+- `python3 ~/.hermes/skills/safe-update/scripts/safe_update.py cleanup`
 
 ## Features
 - **Disk space check** — fails if less than 500MB free (configurable via `SAFE_UPDATE_MIN_FREE_MB`)
